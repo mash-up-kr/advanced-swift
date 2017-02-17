@@ -4,14 +4,19 @@
 - Swift의 Collection Type은 항상 Reference copy를 하지 않고 값을 복사한다.
 ```Swift
 var x = [1,2,3] 
-var y = x y.append(4)y // [1, 2, 3, 4] 
+var y = x y.append(4)
+y // [1, 2, 3, 4] 
 x // [1, 2, 3]
 ```
 
 - Foundation의 NSArray의 경우 조작 메서드를 보유하고 있지 않고 조작을 위해선 NSMutableArray를 사용해야한다. 그러나 NSArray가 항상 조작되지 않는다고 보장되어지진 않는다.
 ```Swift
-let a = NSMutableArray(array: [1,2,3])let b: NSArray = aa.insert(4, at: 3) b // ( 1, 2, 3, 4 )
-``` * b는 NSArray이지만 NSMutableArray의 Reference 값을 할당 받음으로써 간접적으로 조작이 됨.
+let a = NSMutableArray(array: [1,2,3])
+let b: NSArray = a
+a.insert(4, at: 3) b // ( 1, 2, 3, 4 )
+``` 
+
+b는 NSArray이지만 NSMutableArray의 Reference 값을 할당 받음으로써 간접적으로 조작이 됨.
 
 - Swift에서는 위와 달리 Reference sharing이 없기 때문에 `let`으로 선언할 경우 변하지 않는 변수임이 보장된다.
 
@@ -25,12 +30,15 @@ let a = NSMutableArray(array: [1,2,3])let b: NSArray = aa.insert(4, at: 3) b /
 - 아래와 같은 정수 배열의 연산에 관련된 코드가 있다.
 ```Swift
 var squared: [Int] = [] 
-for fib in fibs {squared.append( fib * fib) }squared // [0, 1, 1, 4, 9, 25]
+for fib in fibs {
+squared.append( fib * fib) }
+squared // [0, 1, 1, 4, 9, 25]
 ```
 
 - Swift에는 함수형 프로그래밍에서 쓰이던 `map` 메서드가 있는데 이를 활용하면 훨씬 간결한 코드를 작성할 수 있다.
 ```Swift
-let squares =  bs.map {  b in  b *  b }squares // [0, 1, 1, 4, 9, 25]
+let squares =  bs.map {  b in  b *  b }
+squares // [0, 1, 1, 4, 9, 25]
 ```
 
 - 위 코드에는 세 가지 정도의 장점이 있는데
@@ -42,25 +50,37 @@ let squares =  bs.map {  b in  b *  b }squares // [0, 1, 1, 4, 9, 25]
 
 - Swift Standard Library 전체에서 parameterizing의 흔적을 찾아볼 수 있다.
 - 아래 함수들의 목적은 코드의 필요없는 부분을 없애기 위해서이다. ( 예를 들면, 새로운 array의 생성이나 반복문 등 )
-`map` , `flatMap` -> 요소들을 어떻게 변환시킬 건지?
-`filter` -> 요소가 포함되어야하는지?
-`reduce` -> 어떻게 요소들을 하나의 값으로 만들지?
-`sequnce` -> 시퀀스 다음에는 어떤 요소가 와야하는지?
-`forEach` -> 요소에 적용해야할 조건(?)은 무엇인지?
-`sort`, `lexicographicallyPrecedes`, `partition` -> 두 요소가 어떤식으로 와야하는지?
-`index`, `first`, `contains` -> 요소와 매칭이 되는지?
-`min`, `max`  -> 두 요소중 어떤 것이 크고/작은지?
-`elementsEqual` , `starts` -> 두 요소가 같은지?
-`split` -> 요소가 separator인지?
+
+- `map` , `flatMap` -> 요소들을 어떻게 변환시킬 건지?
+- `filter` -> 요소가 포함되어야하는지?
+- `reduce` -> 어떻게 요소들을 하나의 값으로 만들지?
+- `sequnce` -> 시퀀스 다음에는 어떤 요소가 와야하는지?
+- `forEach` -> 요소에 적용해야할 조건(?)은 무엇인지?
+- `sort`, `lexicographicallyPrecedes`, `partition` -> 두 요소가 어떤식으로 와야하는지?
+- `index`, `first`, `contains` -> 요소와 매칭이 되는지?
+- `min`, `max`  -> 두 요소중 어떤 것이 크고/작은지?
+- `elementsEqual` , `starts` -> 두 요소가 같은지?
+- `split` -> 요소가 separator인지?
 
 - 아래와 같이 배열의 마지막 부터 접미사를 탐색하는 코드를 Extension을 활용해 좀 더 간단하게 변환할 수 있다.
 ```Swift
-let names = ["Paula", "Elena", "Zoe"]var lastNameEndingInA: String?for name in names.reversed() where name.hasSuffix x("a") {	lastNameEndingInA = name	break}lastNameEndingInA // Optional("Elena")
+let names = ["Paula", "Elena", "Zoe"]
+var lastNameEndingInA: String?
+for name in names.reversed() where name.hasSuffix x("a") {
+	lastNameEndingInA = name
+	break
+}
+lastNameEndingInA // Optional("Elena")
 ```
 
 ```Swift
-extension Sequence {func last(where predicate: (Iterator.Element) -> Bool) -> Iterator.Element? {	for element in reversed() where predicate(element) { 
-		return element	}	return nil	} 
+extension Sequence {
+func last(where predicate: (Iterator.Element) -> Bool) -> Iterator.Element? {
+	for element in reversed() where predicate(element) { 
+		return element
+	}
+	return nil
+	} 
 }
 ```
 
@@ -75,7 +95,8 @@ match // Optional("Elena")
 - 함수를 활용하는 방식은 `guard`와도 적절하게 활용된다. 
 ```Swift
 guard let match = someSequence.last(where: { $0.passesTest() }) 
-	else { return }// Do something with match
+	else { return }
+// Do something with match
 ```
 
 ### Mutation and Stateful Closures
@@ -93,8 +114,13 @@ array.map { item in
 - Performing side effects is different than deliberately giving the closure *local state*, which is a particularly useful technique, and it’s what makes closures — functions that can capture and mutate variables outside their scope
 
 ```Swift
-extension Array {	func accumulate<Result>(_ initialResult: Result,		_ nextPartialResult: (Result, Element) -> Result) -> [Result] {	var running = initialResult return map { next in		running = nextPartialResult(running, next)		return running 
-		}	} 
+extension Array {
+	func accumulate<Result>(_ initialResult: Result, _ nextPartialResult: (Result, Element) -> Result) -> [Result] {
+	var running = initialResult return map { next in
+		running = nextPartialResult(running, next)
+		return running 
+		}
+	} 
 }
 ```
 
@@ -112,7 +138,7 @@ nums.filter { num in num % 2 == 0 } // [2, 4, 6, 8, 10]
 
 ```Swift
 nums.filter { $0 % 2 == 0 } // [2, 4, 6, 8, 10]
-``` * More readable
+```
 
 - By combining `map` and `filter`, we can easily write a lot of operations on arrays without having to introduce a single intermediate array, and the resulting code will become shorter and easier to read.
 
@@ -127,7 +153,7 @@ bigArray.filter { someCondition }.count > 0 // (X)
 bigArray.contains { someCondition } // (O)
 ```
 
-filter creates a brand new array and processes every element in the array. But this is unnecessary. This code only needs to check if one element matches — in which case, contains(where:) will do the job:
+filter creates a brand new array and processes every element in the array. But this is unnecessary. This code only needs to check if one element matches — in which case, `contains(where:)` will do the job:
 
 
 
