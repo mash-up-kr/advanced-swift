@@ -1,8 +1,8 @@
 2. Built-In Collections
 =================
 
-*Arrays*
------------
+Arrays
+=================
 ## Arrays and Mutablility
 - `var` vs `let`
 - Arrays는 struct이므로 value type
@@ -219,8 +219,8 @@ if number > 2 { return }
 }
 ```
 
-*Array Types*
------------
+Array Types
+=================
 
 ## Slices
 - 범위로 요소 범위에 액세스가능
