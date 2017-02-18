@@ -152,7 +152,6 @@
   * `min`, `max` : 두 요소 중 최소값, 최대값은 무엇인가?
   * `elementsEqual`, `starts` : 두 요소가 같냐?
   * `split` : 이 요소가 seperator냐?
-* ​
 * 기타 짜볼 수 있는 유용한 함수
   * `accumulate`
   * `all(matching:)`, `none(matching:)`
@@ -249,11 +248,7 @@
     fibs.reduce("") { str, num in str + "\(num) " } // 0 1 1 2 3 5
     ```
 
-* ***
-
 ###### A Flattening Map ***
-
-* ​
 
 ###### Iteration using forEach
 
@@ -271,8 +266,6 @@
     }
     ```
 
-* ​
-
 ### Array Types
 
 ###### Slices
@@ -287,11 +280,7 @@
 
 * `ArraySlice`는 배열의 `view`이다.
 
-* ​
-
 ###### Bridging ***
-
-* ​
 
 # Dictionaries
 
