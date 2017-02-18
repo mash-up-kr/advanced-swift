@@ -7,21 +7,21 @@
 -    **struct**이므로 **value type**
 
      ```swift
-        var x = [1,2,3]
-        var y = x
-        y.append(4)
-        x	// [1,2,3]
-        y	// [1,2,3,4]
+     var x = [1,2,3]
+     var y = x
+     y.append(4)
+     x	// [1,2,3]
+     y	// [1,2,3,4]
      ```
 
 -    let : 수정 불가 , var : 수정 가능
 
      ```swift
-        var numbers = [1,2,3,4,5,6,7,8]	//배열 생성 + Type Inference
-        //var numbers = Array<Int>()	배열 생성 + Type Inference
+     var numbers = [1,2,3,4,5,6,7,8]	//배열 생성 + Type Inference
+     //var numbers = Array<Int>()	배열 생성 + Type Inference
 
-        numbers.append(1)				//[1,2,3,4,5,6,7,8,1]	//value를 추가
-        numbers.append(contentsOf: [100,101])	//[1,2,3,4,5,6,7,8,1,100,101]	배열을 추가
+     numbers.append(1)				//[1,2,3,4,5,6,7,8,1]	//value를 추가
+     numbers.append(contentsOf: [100,101])	//[1,2,3,4,5,6,7,8,1,100,101]	배열을 추가
      ```
 
 -    배열 생성방법
@@ -41,98 +41,113 @@
      array.isEmpty		//return Bool
      array.count 		//return Int
      ```
-     ​
-
-     ### **Array Iterate**
-
-     ```swift
-     for x in array {
-       //모든 index iterate
-     }
-
-
-     for x in array.dropFirst() {
-       //index == 0 제외한 iterate
-     }
-
-
-     for x in array.dropLast(5){
-       //뒤에서 5개 제외한 iterate.
-       //array의 lastindex보다 큰 값이 들어가는 경우 nothing happen
-     }
-
-
-     for (index, element) in array.enumerated() {
-       //index와 element에 각각 접근 가능
-     }
-
-
-     //조건에 부합하는 val의 index 반환. 없으면 nil반환
-     array.index({(val: T) in return 조건})
-     //즉 특정한 element의 index 찾음
-
-
-
-     //배열의 각 element들을 transform
-     array.map({(val: T) in 로직 })
-     //flatmap과의 비교
-     1. 옵셔널을 푼다
-     let mapItems : [Int?] = [1,2,3,nil]
-     mapItems.map { $0 }	// [1,2,3,nil]
-     mapItems.flatMap { $0 }	//[1,2,3]
-
-     2. 중첩배열 풀기
-     let 중첩배열 = [[1,2,3],[4,5,6]]
-     중첩배열.flatMap { $0 }	//[1,2,3,4,5,6]
-     //[Any]형식의 배열은 안됨
 
 
 
 
-     //조건에 부합하는 element들만 가져옴
-     array.filter({val: T} in return 조건)
+### **Array Iterate**
 
 
+```swift
+for x in array {
+   //모든 index iterate
+ }
+```
 
 
-     //오름차순 정리
-     array.sort()
-
-     array.sort { $0.age < $1.age }
-     people.contains { $0.age < 18 }
-     people.sort { $0.name.uppercased() < $1.name.uppercased() 
-
+```swift
+ for x in array.dropFirst() {
+   //index == 0 제외한 iterate
+ }
+```
 
 
-     //array가 otherArray보다 사전적으로 앞에 오는지 검사(return Bool)
-     array.lexicographicallyPrecedes(otherArray)
-
-     //컬렉션의 요소 순서를 재정렬하고 주어진 조건자를 요소 간 비교로 사용하여 피벗 인덱스를 반환합니다.
-     var numbers = [50, 30, 60, 50, 80, 10, 40, 30]
-     numbers.partition { a, b in a > b}	// 2
-     numbers //[60, 80, 50, 50, 30, 10, 40, 30]
-
-
-     //두 sequence가 같은 순서의 elements를 갖는지 검사(return Bool)
-     array.elementsEqual(otherArray)
-     //시퀀스의 초기 요소가 다른 시퀀스의 요소와 같은지 여부를 나타내는 부울 값을 반환합니다.
-     array.starts(with: otherArray)
-
-     [1,2,3,4,5].elementsEqual([1,2,3])	//false
-     [1,2,3].elementsEqual([1,2,3,4,5])	//false
-     [1,2,3,4,5].starts(with: [1,2,3])	//true
-     [1,2,3].starts(with: [1,2,3,4,5])	//false
+```swift
+ for x in array.dropLast(5){
+   //뒤에서 5개 제외한 iterate.
+   //array의 lastindex보다 큰 값이 들어가는 경우 nothing happen
+ }
+```
 
 
-     //separator로 배열을 나눈다
-     [1,2,3,4,5].split(separator: 3)		//[[1,2],[4,5]]
+```swift
+ for (index, element) in array.enumerated() {
+   //index와 element에 각각 접근 가능
+ }
+```
 
 
-     [1,2,3,4,5].forEach({(val: Int) in 로직})	
+```swift
+ //조건에 부합하는 val의 index 반환. 없으면 nil반환
+ array.index({(val: T) in return 조건})
+ //즉 특정한 element의 index 찾음
+```
+
+```swift
+ //배열의 각 element들을 transform
+ array.map({(val: T) in 로직 })
+ //flatmap과의 비교
+ 1. 옵셔널을 푼다
+ let mapItems : [Int?] = [1,2,3,nil]
+ mapItems.map { $0 }	// [1,2,3,nil]
+ mapItems.flatMap { $0 }	//[1,2,3]
+
+ 2. 중첩배열 풀기
+ let 중첩배열 = [[1,2,3],[4,5,6]]
+ 중첩배열.flatMap { $0 }	//[1,2,3,4,5,6]
+ //[Any]형식의 배열은 안됨
+```
 
 
+```swift
+ //조건에 부합하는 element들만 가져옴
+ array.filter({val: T} in return 조건)
+```
+
+
+```swift
+ //오름차순 정리
+ array.sort()
+
+ array.sort { $0.age < $1.age }
+ people.contains { $0.age < 18 }
+ people.sort { $0.name.uppercased() < $1.name.uppercased() 
+```
+
+```swift
+ //array가 otherArray보다 사전적으로 앞에 오는지 검사(return Bool)
+ array.lexicographicallyPrecedes(otherArray)
+
+ //컬렉션의 요소 순서를 재정렬하고 주어진 조건자를 요소 간 비교로 사용하여 피벗 인덱스를 반환.
+ var numbers = [50, 30, 60, 50, 80, 10, 40, 30]
+ numbers.partition { a, b in a > b}	// 2
+ numbers //[60, 80, 50, 50, 30, 10, 40, 30]
+```
+
+
+```Swift
+ //두 sequence가 같은 순서의 elements를 갖는지 검사(return Bool)
+ array.elementsEqual(otherArray)
+ //시퀀스의 초기 요소가 다른 시퀀스의 요소와 같은지 여부를 나타내는 부울 값을 반환.
+ array.starts(with: otherArray)
+
+ [1,2,3,4,5].elementsEqual([1,2,3])	//false
+ [1,2,3].elementsEqual([1,2,3,4,5])	//false
+ [1,2,3,4,5].starts(with: [1,2,3])	//true
+ [1,2,3].starts(with: [1,2,3,4,5])	//false
+```
+
+
+```swift
+ //separator로 배열을 나눈다
+ [1,2,3,4,5].split(separator: 3)		//[[1,2],[4,5]]
+```
+
+
+```swift
+ [1,2,3,4,5].forEach({(val: Int) in 로직})	
+```
      ** 이 모든 기능의 목표는 새로운 배열의 생성, 소스 데이터에 대한 for 루프 등과 같이 코드의 중요하지 않은 부분이 혼란스럽게되는 것을 없애는 것. **
-     ```
 
 -    **NSArray**는 immutable한 Obj-c의 class => **reference type**
 
@@ -176,11 +191,12 @@ extension Array {
 
 
 
-### **Reduce**
+
+### Reduce**
 
 - 컨테이너 내부의 콘텐츠를 하나로 합쳐주는 기능
 
-- 초기 값 (이 경우 0)과 중간 값 (total)과 요소(num)를 결합하는 함수의 두 부분을 추상화함.
+- 초기 값 (이 경우 0)과 중간 값 (result)과 요소(nextValue)를 결합하는 함수의 두 부분을 추상화함.
 
   ```swift
   let numbers = [1,2,3,4,5]
@@ -250,21 +266,18 @@ extension Array {
   }
   keys = alphabetDictionary.map{ $0.0 }
 
-
-
   //Set
   let numberSet : Set<Int> = [1,2,3,4,5]		//[5,2,3,1,4]
   let resultSet = numberSet.map{ $0 * 2 }		//[10,4,6,2,8]
 
-
-
   //Optional
   let optionalInt : Int? = 3
   let resultInt : Int? = optionalInt.map({(unwrappedInt: Int?) in
-      guard let unWrappedInt = unwrappedInt else { return 0 }
-          return unWrappedInt * 2
-  })
+    guard let unWrappedInt = unwrappedInt else { return 0 }
+        return unWrappedInt * 2
+    })
   ```
+
 
 
 
@@ -368,6 +381,7 @@ print(result2)
 
 
 
+
 ### **ArraySlices**
 
 - 배열조각
@@ -377,7 +391,7 @@ print(result2)
   type(of: slice)	//ArraySlice<Int>
   ```
 
--  배열에 대한 뷰
+- 배열에 대한 뷰
 
 - 배열 복사할 필요 없음
 
