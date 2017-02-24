@@ -217,3 +217,159 @@ NSArray는 객체로 유지할 수 있기 때문에 AnyObjet와 양립할 수 �
 변수 타입도 Objective-C로 복사될 수 있다.
 
 
+## Dictionaries
+
+**dictionary**는 일치하는 값을 포함하는 데이터 구조이다.
+key값을 찾을 때는 평균적으로 O(1)의 시간복잡도를 가지지만 배열을 찾을 때는 배열의 크기 만큼의 시간이 걸린다.
+배열과 달리, **dictionary**는 순서가 없다.
+
+dictionary lookup은 항상 optional value을 리턴한다.
+정확한 key가 존재하지 않으면 nil을 리턴한다.
+
+
+### Mutation
+
+배열과 같이 let으로 정의된 딕션어리는 변경이 불가능하다.
+entry는 추가하거나, 제거하거나, 변경될 수 없다.
+또한 배열과 같이 var를 사용하여 변경가능한 딕션어리를 정의한다.
+
+### Some Useful dictionary extensions
+
+첫번째로, merge메소드를 통해 딕션어리를 확장할 수 있다.
+element는 (Key, Value)짝이 필수요소이므로 메소드의 제네릭 제약은 (key와 value는 제네릭 타입의 파라미터여야 한다)로 표현해야 한다.
+
+```
+extension Dictionary {
+    mutating func merge<S>(_ other: S)
+        where S: Sequence, S.Iterator.Element == (key: Key, value: Value) { for (k, v) in other {
+        self[k] = v 
+        }
+    } 
+}
+```
+위 코드를 통해 하나의 딕션어리를 다른 하나에 머지할 수 있다.
+
+다른 흥미로운 extension은 (Key, Value)를 순서대로 딕션어리를 생성하는 것이다.
+
+```
+extension Dictionary {
+    init<S: Sequence>(_ sequence: S)
+        where S.Iterator.Element == (key: Key, value: Value) { self = [:]
+        self.merge(sequence)
+    } 
+}
+
+```
+
+다른 유용한 확장은 딕션어리 값을 map하는 것이다.
+딕션어리 구조를 유지하며 값을 변경하고 싶을 때 mapValue메소드는 standard map을 호출해서 (key, transformed value)쌍의 배열을 생성한다.
+그리고 다시 dictionary로 변경한다.
+
+```
+extension Dictionary {
+    func mapValues<NewValue>(transform: (Value) -> NewValue)
+        -> [Key:NewValue] {
+            return Dictionary<Key, NewValue>(map { (key, value) in
+                return (key, transform(value)) 
+            })
+        } 
+    }
+    let settingsAsStrings = settings.mapValues { setting -> String in 
+        switch setting {
+        case .text(let text): return text
+        case .int(let number): return String(number)
+        case .bool(let value): return String(value)  
+    }
+}
+settingsAsStrings // ["Name": "Jane\'s iPhone", "Airplane Mode": "true"]
+```
+
+### Hashable Requirement
+
+딕션어리는 해시 테이블이다. 딕션어리는 각 값을 카의 hashValue에 기초를 둔 배열 저장공간의 위치에 할당한다. 
+
+커스텀 타입을 딕션어리 키로 쓰면 Hashable conformance를 더해야한다. 이것은 hashValue의 실행을 필요로한다.
+
+좋은 hash function의 특징은 빠르다는 것이다. hashValue실행은 O(1)의 복잡도이다.
+
+주의할 점은 semantic을 딕션어리 키의로서 사용하지 말아야한다.
+만약 너가 and/or로 딕션어리 값을 변경하면 딕션어리 내에서 찾을 수 없을 것이다.
+
+## Sets 
+
+set은 순서가 없는 요소이다. 
+당신은 키만 있고 값은 없는 딕션어리라고 생각할 수 있다.
+딕션어리와 같이 set은 hash table로 실행되고 비슷한 특징과 필수요소를 가지고 있다.
+
+### Set Algebra
+
+set은 수학적 개념과 비슷하다.
+수학에서의 set의 연산을 지원한다. 예를 들면 빼기 연산 혹은 intersection 연산을 할 수 있다.
+
+```
+let iPods: Set = ["iPod touch", "iPod nano", "iPod mini", "iPod shuf e", "iPod Classic"]
+let discontinuedIPods: Set = ["iPod mini", "iPod Classic"] 
+let currentIPods = iPods.subtracting(discontinuedIPods) 
+// ["iPod shuf e", "iPod nano", "iPod touch"]
+```
+
+```
+let touchscreen: Set = ["iPhone", "iPad", "iPod touch", "iPod nano"] 
+let iPodsWithTouch = iPods.intersection(touchscreen)
+// ["iPod touch", "iPod nano"]
+```
+
+```
+var discontinued: Set = ["iBook", "Powerbook", "Power Mac"] 
+discontinued.formUnion(discontinuedIPods)
+discontinued // ["iBook", "iPod mini", "Powerbook", "Power Mac", "iPod Classic"]
+```
+
+### Index Sets and Character Sets
+
+IndexSet은 양수의 정수의 집합을 대표한다.
+범위를 순차적으로 저장한다.
+숨겨져 있기 때문에 내부 구조에 대해 걱정할 필요는 없다.
+
+```
+var indices = IndexSet()
+indices.insert(integersIn: 1..<5)
+indices.insert(integersIn: 11..<15)
+let evenIndices = indices. lter { $0 % 2 == 0 } // [2, 4, 12, 14]
+```
+
+CharacterSet은 Unicode Character의 집합을 저장하기에 효율적이다.
+
+### Using Sets Inside Closures
+
+```
+extension Sequence where Iterator.Element: Hashable { 
+    func unique() -> [Iterator.Element] {
+        var seen: Set<Iterator.Element> = [] 
+        return  lter {
+            if seen.contains($0) { 
+                return false
+            }else{ 
+                seen.insert($0) 
+                return true
+            }
+        }
+    }
+}
+
+[1,2,3,12,1,3,4,5,6,4,6].unique() // [1, 2, 3, 12, 4, 5, 6]
+
+```
+
+## Ranges
+
+range는 상향과 하향 경계에 의해 정의된 값이다.
+
+```
+// 0 to 9, 10 is not included
+let singleDigitNumbers = 0..<10 
+
+// "z" is included
+let lowercaseLetters = Character("a")...Character("z")
+```
+
