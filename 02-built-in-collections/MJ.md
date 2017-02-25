@@ -570,7 +570,7 @@ localizedSettings["Do Not Disturb"] = .bool(true)
 
 이를 extension으로 만든다( 기본 라이브러리에서 지원하지 않으므로)
 argument에 대한 필요사항은, 반복할 수 있는 sequence여야 하며 sequence의 요소는 대상 dictionary와 동일한 유형의 key - value pair여야 한다.
-Iterator.Elemtns가 (Key, Value)인 쌍인 모든 sequence는 이러한 요규사항을 충족하므로, 메서드의 generic 제약조건을 표현해야 한다. (Key 및 Value는 확장 할 Dictionary 유형의 제네릭 형식 매개 변수입니다).)
+Iterator.Elemtns가 (Key, Value)인 쌍인 모든 sequence는 이러한 요규사항을 충족하므로, 메서드의 generic 제약조건을 표현해야 한다. (Key 및 Value는 확장 할 Dictionary 유형의 제네릭 형식 매개 변수).)
 
 ```swift
 extension Dictionary {
@@ -583,7 +583,7 @@ extension Dictionary {
 }
 ```
 
-다음 예제처럼, 한 dictionary를 다른 dictionary와  merge할 수 있지만, method의 인자는 key-value 또는 다른 sequence의 array일 수 있다. ??????????????????????????????????????????????????
+다음 예제처럼, 한 dictionary를 다른 dictionary와  merge할 수 있지만, method의 인자는 key-value 또는 다른 sequence의 array(key, value를 인자로 갖는)일 수 있다. 
 
 ```swift
 var settings = defaultsSettings	//["Airplane Mode":.bool(true), "Name":.text("My iPhone")]
@@ -592,8 +592,6 @@ settings.merge(overridenSettings)
 settings
 //["Name":Setting.text("Jane's iPhone"), "Airplane Mode":Setting.bool(true)]
 ```
-
-
 
 - (Key, Value)쌍의 sequence로부터 dictionary를 생성할 수도 있다.
   (**표준 라이브러리는 매우 자주 발생하는 배열에 대해 유사한 초기화 프로그램을 제공**)
@@ -621,7 +619,8 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
 - Dictionary는 Sequence이기 때문에 이미 **배열을 생성하는 map 메서드를 가지고 있다.** 
 
-- Dictionary의 구조를 손상시키지 않고 값을 변환하기를 원하는 경우 사용할 때는 extension을 이용.
+  - map을 이용하면 tuple형식으로 반환됨
+  - Dictionary의 구조( [ key: value ] )를 손상시키지 않고 값을 변환하기를 원하는 경우 사용할 때는 extension을 이용.
 
 - mapValues 메소드는 우선 standard map을 호출하여 (키, 변환 된 값) 쌍의 배열을 만든 다음 위에서 정의한 새 이니셜 라이저를 사용하여 사전으로 되돌린다.
 
@@ -656,11 +655,11 @@ let alarmDictionary = Dictionary(defaultAlarms)
     - 데이터가 저장되는 버킷들의 배열로 만들어 짐.
     - 한 버킷은 하나 이상의 레코드를 수용 가능.(column : 슬롯 /  row : 버킷)
 
-    |      |      |      |
+    |      | 슬롯0  | 슬롯1  |
     | ---- | ---- | ---- |
-    |      |      |      |
-    |      |      |      |
-    |      |      |      |
+    | 버킷0  |      |      |
+    | 버킷1  |      |      |
+    | 버킷2  |      |      |
 
   - Dictionary는 각 key에, key의 hashValue를 기반으로 기본 저장소 배열의 위치 할당
 
@@ -671,8 +670,42 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
   - 사용자 정의 유형을 dictionary의 key로 사용하려면 Hashable 적합성을 수동으로 추가해야 함
 
-    - hashValue Property 구현 필요 <- Hashable이 Equatable을 extends 하므로, == 연산자의 overload 발생.
-    - 두 인스턴스가 동일하면 동일한 hashValue 가져야 함 / 반대의 경우는 항상 참은 아님
+    - Hashable protocol을 이용해 커스텀 구조 및 고유 값을 만들 수 있다.
+
+      ```swift
+      struct Point {
+      	let x: Int
+      	let y: Int
+      }
+
+      extension Point: Hashable {
+      	var hashValue: Int {
+      		return x.hashValue ^ y.hashValue
+      	}
+      }
+
+      func ==(lhs: Point, rhs: Point) -> Bool {
+      	return lhs.x == rhs.x && lhs.y == rhs.y
+      }
+      ```
+
+    - Hashable 프로토콜을 사용하면 hashValue 계산 속성과 == 연산자를 선언해야 합니다.
+
+      - Hashable이 Equatable을 extends 하므로, == 연산자의 overload 발생.
+      - 두 인스턴스가 동일하면 동일한 hashValue 가져야 함 / 반대의 경우는 항상 참은 아님
+
+    ```swift
+    //이제 Point 배열에서 고유 값들만 추출 가능
+    extension Array where Element : Hashable {
+    	var unique: [Element] {
+    		return Array(Set(self))
+    	}
+    }
+
+    let uniqueList = [Point(x: 1, y: 1), ... ].unique
+    ```
+
+    ​
 
   - 중복된 hashValue의 가능성이 존재하므로, 이는 Dictionary가 충돌을 처리할 수 있어야 한다는 것을 의미
 
@@ -710,7 +743,6 @@ let alarmDictionary = Dictionary(defaultAlarms)
   - 이것을 피하기 위해 비트로테이션을 믹스에 추가 할 수 있음. ???????????????????????????????????
 
 
-
 - value type (예 : 변경 가능한 객체)이 아닌 유형을 dictionary의 key로 사용할 때는 주의가 요구됨. 
   - 해시 값 등을 변경하는 방식을 dictionary key로 사용한 후에 개체를 변형하면 사전에서 다시 찾을 수 없다. - key값도 변경되니까???????
 
@@ -729,7 +761,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
   - 연산 시간은 O(1) - (dictionary와 같음)
   - set의 **element**도 dictionary의 key처럼 **Hashable**
 
-- **순서가 중요치 않은 경우, 중복데이터가 없음을 보장해야 하는 경우 Set 사용**
+- **순서가 중요치 않은 경우, 중복데이터가 없음을 보장해야 하는 경우 사용**
 
 - ExpressibleByArrayLiteral Protocol을 따르므로 Array Literal로 초기화 가능
 
@@ -738,13 +770,19 @@ let alarmDictionary = Dictionary(defaultAlarms)
   naturals	//[2,3,1]
   naturals.contains(3)	//true
   naturals.contains(0)	//false
+
+  var numbers = [1,2,3] // 타입 추론시에는 Int 배열로 인식함
   ```
 
 - 다른 collection처럼 common operation을 지원.
 
   - **for loop, map, filter, sorts 등**
 
+- 새로운 요소 추가시에는 **insert(_:)**
 
+- 요소 삭제시에는 **remove(_:)**
+
+- 정렬시에는 **sorted()**
 
 
 
@@ -779,11 +817,36 @@ let alarmDictionary = Dictionary(defaultAlarms)
     discountinued	//["iBook","iPod mini", "Powerbook","Power Mac","iPod Classic"]
     ```
 
+  - 여집합의 합(배타적 논리합)
+
+    ```swift
+    //여집합의 합(배타적 논리합) : {"명재3", "명재2", "명재4", "명재5"}
+    let englishClassStudent : Set<String> = ["명재","명재2","명재3"]
+    let koreanClassStudent : Set<String> = ["명재","명재4","명재5"]
+    let unionSet = englishClassStudent.union(koreanClassStudent)
+    ```
+
+    ```swift
+    let englishClassStudent : Set<String> = ["명재","명재2","명재3"]
+
+    let koreanClassStudent : Set<String> = ["명재","명재4","명재5"]
+
+    englishClassStudent.isDisjoint(with: koreanClassStudent)    //서로 배타적인가? false
+
+    englishClassStudent.isSubset(of: koreanClassStudent)    //eng이 kor의 부분집합인가? false
+
+    englishClassStudent.isSuperset(of: koreanClassStudent)  //eng은 kor의 전체집합인가? false
+    ```
+
+    ​
+
   - 거의 모든 Set의 연산은 non-mutating과 mutating 형식을 모두 갖는다.
 
     - mutating은 form prefix. (원래의 set을 변형함)
 
+  ​
 
+  ​
 
 # IndexSet and CharacterSet
 
