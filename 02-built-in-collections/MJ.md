@@ -11,44 +11,44 @@
 -    **struct**이므로 **value type**
 
      ```swift
-     var x = [1,2,3]
-     var y = x
-     y.append(4)
-     x	// [1,2,3]
-     y	// [1,2,3,4]
+        var x = [1,2,3]
+        var y = x
+        y.append(4)
+        x	// [1,2,3]
+        y	// [1,2,3,4]
      ```
 
 -    let : 수정 불가 , var : 수정 가능
 
      ```swift
-     var numbers = [1,2,3,4,5,6,7,8]	//배열 생성 + Type Inference
-     //var numbers = Array<Int>()	배열 생성 + Type Inference
+        var numbers = [1,2,3,4,5,6,7,8]	//배열 생성 + Type Inference
+        //var numbers = Array<Int>()	배열 생성 + Type Inference
 
-     numbers.append(1)				//[1,2,3,4,5,6,7,8,1]	//value를 추가
-     numbers.append(contentsOf: [100,101])	//[1,2,3,4,5,6,7,8,1,100,101]	배열을 추가
+        numbers.append(1)				//[1,2,3,4,5,6,7,8,1]	//value를 추가
+        numbers.append(contentsOf: [100,101])	//[1,2,3,4,5,6,7,8,1,100,101]	배열을 추가
      ```
 
 -    배열 생성방법
 
      ```swift
-     var array : [String] = []	//타입 명시시 []만으로 빈 배열 생성 가능
-     [Int]()			// 빈배열
-     Array<Int>()	// 빈배열
-     [2,3,4]			
-     Array(repeating: 123, count: 4)		//[123,123,123,123]
-     Array(repeating: 1, count: 2) + [123,123,123,123]		//[1,1,123,123,123,123]
+        var array : [String] = []	//타입 명시시 []만으로 빈 배열 생성 가능
+        [Int]()			// 빈배열
+        Array<Int>()	// 빈배열
+        [2,3,4]			
+        Array(repeating: 123, count: 4)		//[123,123,123,123]
+        Array(repeating: 1, count: 2) + [123,123,123,123]		//[1,1,123,123,123,123]
      ```
 
 -    배열 접근
 
      ```swift
-     var array = [1,2,3,4,5]
-     array.isEmpty		//return Bool
-     array.count 		//return Int
+        var array = [1,2,3,4,5]
+        array.isEmpty		//return Bool
+        array.count 		//return Int
 
-     //범위연산자 사용하여 읽기와 수정 가능
-     array[1…3]             //읽기
-     array[1…3] = [“1”,”2”,”3”]       //수정
+        //범위연산자 사용하여 읽기와 수정 가능
+        array[1…3]             //읽기
+        array[1…3] = [“1”,”2”,”3”]       //수정
      ```
 
 
@@ -203,8 +203,15 @@ for x in array {
 
 ## **Mutation And Stateful Closures ?????**
 
-- map - transform용인데 insert -> map의 용도와 다르게 사용 - 의미가 달라짐
-- ​
+- 단순히 insert의 반복 ->  map의 용도(각 elements의 transform) 와 다르게 사용
+
+  ```swift
+  array.map { item in 
+  	table.insert(item)	//용도에 맞지 않게 map사용한 것 -> forloop 사용하는것이 나음
+  }
+  ```
+
+  ​
 
 ## **Filter**
 
@@ -292,7 +299,7 @@ extension Array {
 
 - 다중 스레드 환경일 때 대상 컨테이너의 값이 스레드에서 변경되는 시점에 다른 스레드에서도 동시에 변경되려고 할 때 예측하지 못한 결과가 발생하는 부작용 방지
 
-  ​
+- 1:1 대응
 
 - 클로저의 재사용화
 
@@ -476,6 +483,8 @@ print(result2)
 
 
 # **Dictionaries**
+
+- struct
 
 - key, value pair
 
@@ -691,6 +700,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
       func == (lhs: Point, rhs: Point) -> Bool {
       	return lhs.x == rhs.x && lhs.y == rhs.y
       }
+      ```
 
 
 
@@ -704,40 +714,40 @@ let alarmDictionary = Dictionary(defaultAlarms)
       public protocol Equatable {
           public static func ==(lhs: Self, rhs: Self) -> Bool
       }
-
+    
       ```
-
+    
     - Hashable 프로토콜을 사용하면 hashValue 계산 속성과 == 연산자를 선언해야 함.
-
+    
       - Hashable이 Equatable을 extends 하므로, == 연산자의 overload 발생.
       - 두 인스턴스가 동일하면 동일한 hashValue 가져야 함 / 반대의 경우는 항상 참은 아님
         - A - 1 , B - 2, C - 3, D - 4 ….이런 값으로 저장된다 가정.
         - ABC 를 해싱한다면, 123(이어쓰기) or 6(합)이 될 수 있음.
           - 이렇게 되는 과정에서 반대의 경우는 항상 참이 아니게 될 수 있음
-
-    ```swift
+    
+    ​```swift
     //이제 Point 배열에서 고유 값들만 추출 가능
     extension Array where Element : Hashable {
     	var unique: [Element] {
     		return Array(Set(self))
     	}
     }
-
+    
     let uniqueList = [Point(x: 1, y: 1), ... ].unique
-    ```
+    ​```
 
-  - 중복된 hashValue의 가능성이 존재하므로, 이는 Dictionary가 충돌을 처리할 수 있어야 한다는 것을 의미
+-   중복된 hashValue의 가능성이 존재하므로, 이는 Dictionary가 충돌을 처리할 수 있어야 한다는 것을 의미
 
     - 최대한 적은 수의 충돌횟수를 추구해야 함.
     - **모든 hashValue가 같은 경우(최악의 상황), dictionary의 lookup 성능이 O(n)으로 저하됨**
 
     ​
 
-  - Hashable 자체인 기본 데이터 유형으로 구성된 type의 경우, hashValue를 XOR 하면 좋은 시작이 될 수 있음.
+-   Hashable 자체인 기본 데이터 유형으로 구성된 type의 경우, hashValue를 XOR 하면 좋은 시작이 될 수 있음.
 
     - XOR(배타적 논리 합): 2개의 명제 가운데 1개만 참일 경우를 판단하는 논리연산
 
-  ```swift
+```swift
   struct Person {
     var name: String
     var zipCode: Int
@@ -756,10 +766,10 @@ let alarmDictionary = Dictionary(defaultAlarms)
       return name.hashValue ^ zipCode.hashValue ^ birthday.hashValue
     }
   }
-  ```
+```
 
-  - 이 기법의 한계 중 하나는 XOR이 해시되는 데이터의 특성에 따라 대칭 (대칭) (즉, a ^ b == b ^ a)하여 충돌을 필요 이상으로 높일 수 있다는 것. 
-  - 이것을 피하기 위해 비트로테이션을 믹스에 추가 할 수 있음. ???????????????????????????????????
+- 이 기법의 한계 중 하나는 XOR이 해시되는 데이터의 특성에 따라 대칭 (대칭) (즉, a ^ b == b ^ a)하여 충돌을 필요 이상으로 높일 수 있다는 것. 
+- 이것을 피하기 위해 비트로테이션을 믹스에 추가 할 수 있음. ???????????????????????????????????
 
 
 - value type (예 : 변경 가능한 객체)이 아닌 유형을 dictionary의 key로 사용할 때는 주의가 요구됨. 
