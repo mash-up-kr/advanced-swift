@@ -359,3 +359,188 @@ let slice = nums[1..<nums.endIndex]
   - Swift array는 Objective-C에 연결할 수 있음
   - Objective-C id 유형은 `Any` 타입으로 Swift로 가져올 수 있음
   - 즉, Swift배열은 이제 NSArray에 연결할 수 있음
+
+ ## Dictionaries
+  - 딕셔너리는 key, value를 갖은 자료형임(키는 중복될 수 없음)
+  - 딕셔너리에서 값을 찾는데 소요되는 시간 : O(1), 배열에서 값을 찾는데 소요되는 시간 : O(n)
+  - 배열과 다르게 딕셔너리는 정렬되지 않음
+```Swift
+enum Setting {
+    case text(String)
+    case int(Int)
+    case bool(Bool)
+}
+
+let defaultSetting: [String: Setting] = [
+    "Airplan Mode": .bool(true),
+    "Name": .text("My iPhone")
+]
+
+defaultSetting["Name"] // Optional(Setting.text("My iPhone"))
+```
+ - key를 subscript 문법으로 value에 접근시, 딕셔너리는 항상 Optional을 리턴함 (키가 존재하지 않거나, 해당 키의 value가 nil일때)
+ - 반면에, 배열은 잘못된 인덱스를 갖고 subscript에 접근시 크래쉬
+
+### Mutation
+ - 배열과 마찬기지로 `let`키워드로 딕셔너리 선언시 immutable함
+ - 딕셔너리에서 value를 삭제시 서브스크립트를 사용해 값을 `nil`로 세팅하거나 또는 `removeValue(forKey:)`함수 사용
+ - 시스템 함수 `removeValue(forKey:)`, `updateValue(_:forKey:)`사용시 변경 이전의 값이 반환됨
+```Swift
+var localizedSettings = defaultSetting
+localizedSettings["Name"] = .text("Mein iPhone")
+localizedSettings["Do Not Disturb"] = .bool(true)
+
+let oldName = localizedSettings.updateValue(.text("ll mio iPhone"), forKey: "Name")
+localizedSettings["Name"] // Optional(Setting.text("ll mio iPhone"))
+oldName // Optional(Setting.text("Mein iPhone"))
+```
+
+### Some Useful Dictionary Extensions
+ - 1. Merge 함수 : 딕셔너리에 다른 딕셔너리를 합병시킴
+```Swift
+extension Dictionary {
+    mutating func merge<S>(_ other: S)
+        where S: Sequence, S.Iterator.Element == (key: Key, value: Value) {
+            for (k, v) in other {
+                self[k] = v
+            }
+    }
+}
+
+var settings = defaultSetting
+let overriddenSettings: [String: Setting] = ["Name": .text("Jane's iPhone")]
+settings.merge(overriddenSettings)
+settings //["Name": {text "Jane's iPhone"}, "Airplan Mode": {bool true}]
+``` 
+ - 2. 편리한 init : 배열을 딕셔너리로 만들기 (개념은.. 빈 딕셔너리를 만들고 `merge` 함수 사용)
+```Swift
+extension Dictionary {
+    init<S: Sequence>(_ sequence: S)
+        where S.Iterator.Element == (key: Key, value: Value) {
+            self = [:]
+            self.merge(sequence)
+    }
+}
+
+let defaultAlarms = (1..<5).map { (key: "Alarm \($0)", value: false) }
+let alarmsDictionary = Dictionary(defaultAlarms)
+// ["Alarm 1": false, "Alarm 4": false, "Alarm 2": false, "Alarm 3": false]
+```
+ - 3. mapValue 함수 : 딕셔너리에 구조는 그대로있고 값만 수정
+```Swift
+extension Dictionary {
+    func mapValue<NewValue>(transform: (Value) -> NewValue) -> [Key: NewValue] {
+        return Dictionary<Key, NewValue>(map { key, value in
+            return (key, transform(value))
+        })
+    }
+}
+
+let settingsAsStrings = defaultSetting.mapValue { setting -> String in
+    switch setting {
+    case .text(let text): return text
+    case .int(let number): return String(number)
+    case .bool(let value): return String(value)
+    }
+}
+settingsAsStrings
+// ["Name": "My iPhone", "Airplan Mode": "true"]
+```
+
+### Hashable Requirement
+ - 딕셔너리는 hash table임
+ - `hashValue`라는 키를 기반으로 딕셔너리는 각각의 키를 배열 저장소에 저장한다.
+ - 따라서, 커스텀 타입의 키를 만들기 위해서는 반듣이 `Hashable`프로토콜을 준수해야함
+ - `hashValue`를 설정해야되고, `Hashable`프로토콜은 `Equatable`프로토콜을 상속받았음으로 `==` 함수를 구현해야함
+ - 여기서, 중요한 점은 `==`함수에서 두 인스턴스는 반드시 같은 `hashValue`를 갖고있어야한다.
+ - 역의 경우 다르다. 같은 `hashValue`를 갖고있는 두 인스턴스는 반드시 동일하게 비교되는 것은 아님??
+ - 많은 hash가능 유형(String 등)은 본질적으로 무한 카니널리티를 가지고 있지만, 유한 해시 값은 유한 한 수의 해시 값을 가지고 있다는 점을 고려하면 의미가 있음
+ - 중복된 hash 값은 잠재적으로 Dictionary가 붕괴할 것이란걸 짐착할 수 있음
+ - 그렇지만, 좋은 hash function은 딕셔너리의 퍼포먼스적인 특징을 지키기 위해서 최소한의 붕괴만을 야기한다.
+ - 두번째 특징은 좋은 hash function은 빠르다.
+```Swift
+struct Person {
+    var name: String
+    var zipCode: Int
+    var birthDay: Date
+}
+
+extension Person: Equatable {
+    static func ==(lhs: Person, rhs: Person) -> Bool {
+        return lhs.name == rhs.name && lhs.zipCode == rhs.zipCode && lhs.birthDay == rhs.birthDay
+    }
+}
+
+extension Person: Hashable {
+    var hashValue: Int {
+        return name.hashValue ^ zipCode.hashValue ^ birthDay.hashValue
+    }
+}
+``` 
+ - 마지막으로 딕셔너리의 Key로써 value semantics(ex. mutable objects)를 사용하면 안됨
+
+## Set
+ - Set은 정렬되지 않는 element (각각의 element는 오직 하나만 존재함)의 collection임
+ - Key가 없는 딕셔너리와 비슷함 (O(1), Set의 요소들은 hashable를 준수해야함)
+ - 정렬 순수가 중요하지 않거나, 중복해서 값이 들어갈 필요가 없을때 Array보다 Set을 이용하는 것이 좋음
+
+### Set Algebra
+ - Set은 수학에서의 집합임
+```Swift
+// 차집합
+let iPods: Set = ["iPod touch", "iPod nano", "iPod mini", "iPod shuf e", "iPod Classic"]
+let discountinuedIPods: Set = ["iPod mini", "iPod Classic"]
+let currentIPods = iPods.subtracting(discountinuedIPods)
+currentIPods
+// ["iPod nano", "iPod shuf e", "iPod touch"]
+
+// 교집합
+let touchscreen: Set = ["iPhone", "iPad", "iPod touch", "iPod nano"]
+let iPodsWithTouch = iPods.intersection(touchscreen)
+iPodsWithTouch
+// ["iPod touch", "iPod nano"]
+
+// 합집합
+var discontinued: Set = ["iBook", "Powerbook", "Power Mac"]
+discontinued.formUnion(discountinuedIPods)
+discontinued
+// ["iBook", "iPod mini", "Powerbook", "Power Mac", "iPod Classic"]
+```
+
+### Index Sets and Character Sets
+ - Set은 스탠다르 라이브러리에서 `SetAlgebra`프로토콜을 준수하는 유일한 타입임
+ - 또한, `SetAlgebra`프로토콜은 `IndexSet`, `CharacterSet`타입 에서도 준수됨
+ - `IndexSet`
+     - 양의 정수를 표현함.
+     - `Set<Int>`를 사용할 수 있지만 메모리 효율적인 측면에서 `IndexSet`가 좋다. (범위를 내부적으로 저장하기 때문)
+```Swift
+var indices = IndexSet()
+indices.insert(integersIn: 1..<5)
+indices.insert(integersIn: 11..<15)
+let evenIndices = indices.filter { $0 % 2 == 0 }
+evenIndices //[2, 4, 12, 14]
+```
+ - `CharacterSet`
+     - 유니코드 문자열들을 저장할때 효율적임
+
+ ## Using Sets Inside Closures
+  - unique 함수 : 내부적으로 Set을 이용하여 중복을 없앰
+```Swift
+extension Sequence where Iterator.Element: Hashable {
+    func unique() -> [Iterator.Element] {
+        var seen: Set<Iterator.Element> = []
+        return filter {
+            if seen.contains($0) {
+                return false
+            } else {
+                seen.insert($0)
+                return true
+            }
+        }
+    }
+}
+
+[1,2,3,12,1,3,4,5,6,4,6].unique() // [1, 2, 3, 12, 4, 5, 6]
+```
+
+## Ranges
