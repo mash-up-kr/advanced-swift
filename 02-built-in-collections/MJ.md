@@ -203,8 +203,15 @@ for x in array {
 
 ## **Mutation And Stateful Closures ?????**
 
-- map - transform용인데 insert -> map의 용도와 다르게 사용 - 의미가 달라짐
-- ​
+- 단순히 insert의 반복 ->  map의 용도(각 elements의 transform) 와 다르게 사용
+
+  ```swift
+  array.map { item in 
+  	table.insert(item)	//용도에 맞지 않게 map사용한 것 -> forloop 사용하는것이 나음
+  }
+  ```
+
+  ​
 
 ## **Filter**
 
@@ -292,7 +299,7 @@ extension Array {
 
 - 다중 스레드 환경일 때 대상 컨테이너의 값이 스레드에서 변경되는 시점에 다른 스레드에서도 동시에 변경되려고 할 때 예측하지 못한 결과가 발생하는 부작용 방지
 
-  ​
+- 1:1 대응
 
 - 클로저의 재사용화
 
@@ -475,19 +482,24 @@ print(result2)
 
 
 
-# Dictionaries
+# **Dictionaries**
+
+- struct
 
 - key, value pair
 
+- key는 Hashable protocol을 구현한 type만 가능
+
 - **isEmpty** 이용하여 빈 딕셔너리 확인( true / false 반환)
 
-- 특정 요소에 대한 검색시, Array는 크기에 따라 선형적으로 증가 / Dictionary는 평균 시간(?)
+- 특정 요소에 대한 검색시, Array는 크기에 따라 선형적으로 증가 / Dictionary는 O(1)
 
 - subscripting을 사용하여 value 가져올 수 있음
 
   ```swift
   public subscript(key: Key) -> Value?
-  //subscripting : 클래스, 구조 그리고 열거형은 서브스크립트를 정의할 수 있는데 컬렉션, 리스트 또는 순열의 멤버 항목에 접근하기 위한 단축키임. - http://minsone.github.io/mac/ios/swift-subscripts-summary
+  //subscripting : 
+  //클래스, 구조 그리고 열거형은 서브스크립트를 정의할 수 있는데 컬렉션, 리스트 또는 순열의 멤버 항목에 접근하기 위한 단축키임. - http://minsone.github.io/mac/ios/swift-subscripts-summary
   ```
 
   ```swift
@@ -501,7 +513,7 @@ print(result2)
     "Name":.text("My iPhone"),
   ]
 
-  defaultSettings["Name"]	
+  defaultSettings["Name"]		//subscripting
   ```
 
 - **Dictionary lookup은 항상 optional을 반환**
@@ -522,21 +534,21 @@ print(result2)
   //("Jay", 35)
   //("Jenny",31)
 
-  for (key, value) in friends {
+  for (key, value) in friends {	//key, value에 각각 접근도 가능
     print("\(key) : \(value)")
   }
   ```
 
   ​
 
-# Mutation
+## **Mutation**
 
-- Dictionary도 Array와 같이 struct이므로 let을 이용하여 정의하면 non-mutable
+- Dictionary도 Array와 같이 struct이므로 let을 이용하여 정의하면 non-mutating
 - **Dictionary에서 value remove 방법**
   - subscripting을 사용하여 nil로 설정(dictionary[key] = nil )
   - **removeValue (forKey :)**
     - **키가 존재하지 않으면 nil, 존재하면 삭제된 값 return**
-- immutable  dictionary의 값 변경을 하려면 copy 해야함(**immutable dictionary는 실제로 변경 X**)
+- immutable dictionary의 값 변경을 하려면 copy 해야함(**immutable dictionary는 실제로 변경 X**)
 
 ```swift
 let defaultSettings: [String: Setting] = [
@@ -562,20 +574,21 @@ localizedSettings["Do Not Disturb"] = .bool(true)
 
 
 
-# Some Useful Dictionary Extensions
 
-## Merge
+## **Some Useful Dictionary Extensions**
+
+### **Merge**
 
 위 코드에서 설정한 defaultSettings라는 dictionary와 사용자가 변경한 customSettings라는 dictionary를 merge하려 한다. - 두 dictionary에는 중복되는 키가 존재하는 상황.
 
-이를 extension으로 만든다( 기본 라이브러리에서 지원하지 않으므로)
+이를 extension으로 만든다( 기본 라이브러리에서 지원하지 않으므로 )
 argument에 대한 필요사항은, 반복할 수 있는 sequence여야 하며 sequence의 요소는 대상 dictionary와 동일한 유형의 key - value pair여야 한다.
-Iterator.Elemtns가 (Key, Value)인 쌍인 모든 sequence는 이러한 요규사항을 충족하므로, 메서드의 generic 제약조건을 표현해야 한다. (Key 및 Value는 확장 할 Dictionary 유형의 제네릭 형식 매개 변수).)
+Iterator.Elemtens가 (Key, Value)인 쌍인 모든 sequence는 이러한 요규사항을 충족하므로, 메서드의 generic 제약조건을 표현해야 한다. (Key 및 Value는 확장 할 Dictionary 유형의 제네릭 형식 매개 변수).)
 
 ```swift
 extension Dictionary {
   mutating func merge<S>(_ other: S)
-  	where S: Sequence, S.Iterator.Element == (key: Key, value: Value){
+  	where S: Sequence, S.Iterator.Element == (key: Key, value: Value){	//where절이 generic 제약조건
       for(k,v) in other {
         self[k] = v
       }
@@ -583,7 +596,7 @@ extension Dictionary {
 }
 ```
 
-다음 예제처럼, 한 dictionary를 다른 dictionary와  merge할 수 있지만, method의 인자는 key-value 또는 다른 sequence의 array(key, value를 인자로 갖는)일 수 있다. 
+다음 예제처럼, 한 dictionary를 다른 dictionary와  merge할 수 있지만, method의 인자는 key-value 또는 다른 sequence의 array(key, value를 인자로 갖는 배열)일 수 있다. 
 
 ```swift
 var settings = defaultsSettings	//["Airplane Mode":.bool(true), "Name":.text("My iPhone")]
@@ -615,7 +628,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
 
 
-# Map
+### **Map**
 
 - Dictionary는 Sequence이기 때문에 이미 **배열을 생성하는 map 메서드를 가지고 있다.** 
 
@@ -627,7 +640,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
   ```swift
   extension Dictionary {
     func mapValues<NewValue>(transform: (Value) -> NewValue) -> [Key:NewValue] {
-      return Dictionary<Key, NewValue>(map { (key, value) in 	//standard map호출하여 배열 생성
+      return Dictionary<Key, NewValue>( map { (key, value) in 	//standard map호출하여 배열 생성. (key, value)의 배열을 argument로 갖는 init 필요함
       	return (key, transform(value))
       })
     }
@@ -637,7 +650,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
   	switch setting {
         case .text(let text): return text
         case .int(let number): return String(number)
-        case .bool(let value): return String(value)
+        case .bool(let value): return String(value)	//enum의 associated value
   	}
   }
   settingsAsSettings
@@ -646,7 +659,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
   ​
 
-# Hashable Requirement
+## **Hashable Requirement**
 
 - Dictionary는 HashTable.
 
@@ -661,7 +674,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
     | 버킷1  |      |      |
     | 버킷2  |      |      |
 
-  - Dictionary는 각 key에, key의 hashValue를 기반으로 기본 저장소 배열의 위치 할당
+  - Dictionary는 key의 hashValue를 기반으로 기본 저장소 배열의 위치 할당
 
   - 이 때문에 Dictionary의 key 타입이 Hashable protocol을 따르는 이유
 
@@ -679,46 +692,62 @@ let alarmDictionary = Dictionary(defaultAlarms)
       }
 
       extension Point: Hashable {
-      	var hashValue: Int {
-      		return x.hashValue ^ y.hashValue
+      	var hashValue: Int {	
+      		return x.hashValue ^ y.hashValue	//배타적 논리 합. 둘 중 하나만 true이면 true (여기선 0, 1)
       	}
       }
 
-      func ==(lhs: Point, rhs: Point) -> Bool {
+      func == (lhs: Point, rhs: Point) -> Bool {
       	return lhs.x == rhs.x && lhs.y == rhs.y
       }
       ```
 
-    - Hashable 프로토콜을 사용하면 hashValue 계산 속성과 == 연산자를 선언해야 합니다.
 
+
+
+
+
+      //이렇게 생김
+      public protocol Hashable : Equatable {
+          public var hashValue: Int { get }
+      }
+      public protocol Equatable {
+          public static func ==(lhs: Self, rhs: Self) -> Bool
+      }
+    
+      ```
+    
+    - Hashable 프로토콜을 사용하면 hashValue 계산 속성과 == 연산자를 선언해야 함.
+    
       - Hashable이 Equatable을 extends 하므로, == 연산자의 overload 발생.
       - 두 인스턴스가 동일하면 동일한 hashValue 가져야 함 / 반대의 경우는 항상 참은 아님
-
-    ```swift
+        - A - 1 , B - 2, C - 3, D - 4 ….이런 값으로 저장된다 가정.
+        - ABC 를 해싱한다면, 123(이어쓰기) or 6(합)이 될 수 있음.
+          - 이렇게 되는 과정에서 반대의 경우는 항상 참이 아니게 될 수 있음
+    
+    ​```swift
     //이제 Point 배열에서 고유 값들만 추출 가능
     extension Array where Element : Hashable {
     	var unique: [Element] {
     		return Array(Set(self))
     	}
     }
-
+    
     let uniqueList = [Point(x: 1, y: 1), ... ].unique
-    ```
+    ​```
 
-    ​
-
-  - 중복된 hashValue의 가능성이 존재하므로, 이는 Dictionary가 충돌을 처리할 수 있어야 한다는 것을 의미
+-   중복된 hashValue의 가능성이 존재하므로, 이는 Dictionary가 충돌을 처리할 수 있어야 한다는 것을 의미
 
     - 최대한 적은 수의 충돌횟수를 추구해야 함.
     - **모든 hashValue가 같은 경우(최악의 상황), dictionary의 lookup 성능이 O(n)으로 저하됨**
 
     ​
 
-  - Hashable 자체인 기본 데이터 유형으로 구성된 type의 경우, hashValue를 XOR 하면 좋은 시작이 될 수 있음.
+-   Hashable 자체인 기본 데이터 유형으로 구성된 type의 경우, hashValue를 XOR 하면 좋은 시작이 될 수 있음.
 
     - XOR(배타적 논리 합): 2개의 명제 가운데 1개만 참일 경우를 판단하는 논리연산
 
-  ```swift
+```swift
   struct Person {
     var name: String
     var zipCode: Int
@@ -737,10 +766,10 @@ let alarmDictionary = Dictionary(defaultAlarms)
       return name.hashValue ^ zipCode.hashValue ^ birthday.hashValue
     }
   }
-  ```
+```
 
-  - 이 기법의 한계 중 하나는 XOR이 해시되는 데이터의 특성에 따라 대칭 (대칭) (즉, a ^ b == b ^ a)하여 충돌을 필요 이상으로 높일 수 있다는 것. 
-  - 이것을 피하기 위해 비트로테이션을 믹스에 추가 할 수 있음. ???????????????????????????????????
+- 이 기법의 한계 중 하나는 XOR이 해시되는 데이터의 특성에 따라 대칭 (대칭) (즉, a ^ b == b ^ a)하여 충돌을 필요 이상으로 높일 수 있다는 것. 
+- 이것을 피하기 위해 비트로테이션을 믹스에 추가 할 수 있음. ???????????????????????????????????
 
 
 - value type (예 : 변경 가능한 객체)이 아닌 유형을 dictionary의 key로 사용할 때는 주의가 요구됨. 
@@ -748,7 +777,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
 
 
-# Sets
+# **Sets**
 
 - element의 **순서가 없는** collection
 
@@ -758,7 +787,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
 - Dictionary처럼 HashTable로 구성.
 
-  - 연산 시간은 O(1) - (dictionary와 같음)
+  - **연산 시간은 O(1) - (dictionary와 같음)**
   - set의 **element**도 dictionary의 key처럼 **Hashable**
 
 - **순서가 중요치 않은 경우, 중복데이터가 없음을 보장해야 하는 경우 사용**
@@ -786,7 +815,8 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
 
 
-# Set Algebra(Set 대수학???)
+
+## **Set Algebra(Set 대수학???)**
 
 - 수학적인 모든 공통 집합 연산을 지원
 
@@ -813,7 +843,8 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
     ```swift
     var discountinued: Set = ["iBook", "Powerbook","Power Mac"]
-    discountinued.formUnion(discountinuedIPods)
+    discountinued.formUnion(discountinuedIPods)	//void
+    //union은 새로운 set return
     discountinued	//["iBook","iPod mini", "Powerbook","Power Mac","iPod Classic"]
     ```
 
@@ -828,13 +859,10 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
     ```swift
     let englishClassStudent : Set<String> = ["명재","명재2","명재3"]
-
     let koreanClassStudent : Set<String> = ["명재","명재4","명재5"]
 
     englishClassStudent.isDisjoint(with: koreanClassStudent)    //서로 배타적인가? false
-
     englishClassStudent.isSubset(of: koreanClassStudent)    //eng이 kor의 부분집합인가? false
-
     englishClassStudent.isSuperset(of: koreanClassStudent)  //eng은 kor의 전체집합인가? false
     ```
 
@@ -848,15 +876,16 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
   ​
 
-# IndexSet and CharacterSet
+## **IndexSet and CharacterSet**
 
 - Set는 표준 라이브러리에서 SetAlgebra를 준수하는 유일한 type이지만 SetAlgebra 프로토콜은 Foundation의 두 가지 유형인 IndexSet 및 CharacterSet에서도 adopted 된다.
 
 - **IndexSet는 양의 정수 값 집합**을 나타낸다.
 
   - Set<Int>를 사용하여이 작업을 수행 할 수 있지만 **IndexSet**은 내부적으로 범위 목록을 사용하기 때문에 **더 효율적인 저장 방법**
-    -  1,000 개의 element가있는 tableView가 있고 사용자가 선택한 행의 index를 관리하기 위해 Set을 사용하고자한다고 가정해보자. Set <Int>는 선택된 행 수에 따라 최대 1000 개의 요소를 저장해야 한다. 반면에 **IndexSet은 연속 범위를 저장**하므로 테이블의 처음 500 행을 선택하면 **두 개의 정수 만 저장**됩니다 (섹션의 **상한 및 하한**).
-  - IndexSet은 rangeView 속성을 통해 뷰를 노출합니다.이 뷰 자체는 컬렉션.
+    -  1,000 개의 element가있는 tableView가 있고 사용자가 선택한 행의 index를 관리하기 위해 Set을 사용하고자한다고 가정해보자. Set <Int>는 선택된 행 수에 따라 최대 1000 개의 요소를 저장해야 한다. 반면에 **IndexSet은 연속 범위를 저장**하므로 테이블의 처음 500 행을 선택하면 **두 개의 정수만 저장**됩니다 (섹션의 **상한 및 하한**).
+  - IndexSet은 RangeView 속성을 통해 뷰를 노출합니다.이 뷰 자체는 컬렉션.
+    - IndexSet은 범위를 저장하므로, 각 범위가 떨어져 있을 수 있음. 그럼 그 떨어져있는 부분을 RangeView라는 개념으로 각각 저장하여 관리
 
   ```swift
   //인덱스 집합에 몇 가지 범위를 추가 한 다음 개별 멤버 인 것처럼 인덱스를 매핑 할 수 있습니다.
@@ -877,8 +906,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
 
 
 
-
-# Using Sets Inside Closures
+## **Using Sets Inside Closures**
 
 - Dictionary과 Set는 호출자에게 노출되지 않을 때도 함수 내부에서 사용할 수있는 매우 유용한 데이터 구조가 될 수 있습니다.??????????????????????????????????????????????
 
@@ -889,7 +917,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
       func unique() -> [Iterator.Element] {
         var seen: Set<Iterator.Element> = []
         return filter {
-          if seen.contains($0) {
+          if seen.contains($0) {	//set에서의 contain은 O(1) , array로 한다면 O(n)
             return false
           }else{
             seen.insert($0)
@@ -905,8 +933,7 @@ let alarmDictionary = Dictionary(defaultAlarms)
     - 위의 방법을 사용하면 원래 순서 (요소가 Hashable이어야한다는 제약 조건)를 유지하면서 시퀀스의 모든 고유 요소를 찾을 수 있습니다. filter를 통과 한 클로저 내부에서, 우리는 클로저 외부에서 정의 된 변수(seen)를 참조하여 클로저의 여러 반복에 대해 상태를 유지합니다.
 
 
-
-# Ranges
+# **Ranges**
 
 - 값의 하한값과 상한값으로 정의되는 값의 간격
 
@@ -934,7 +961,9 @@ let alarmDictionary = Dictionary(defaultAlarms)
   - **Half-open range**는 **empty interval** 을 만들 수 있습니다. (lower와 upper가 같은경우)
   - **Closed range**는 **최대 값을 포함** 할 수 있습니다. Half-open range에는 항상 범위에서 가장 높은 값보다 더 큰 표현 가능한 값이 하나 이상 필요합니다.
 
-- (Swift 2에서 모든 범위는 기술적으로 반 개방 범위 였고 ... 연산자로 작성된 경우에도 범위가 최대 표현 가능 값을 포함 할 수 없었습니다. HalfOpenInterval 및 ClosedInterval을 추가로 사용하여 표준 표현식 라이브러리를 수정했습니다. 스위프트 3에서 제거되었습니다.)***????????????????????????????????????????***
+- elements are comparable : 비교값이 같은 type이어야 함 type…type????????????????
+
+- strideable : range 사용할 수 없는 date같은 것을 range가능하게 사용 할 수 있을 듯????????????
 
 - **카운트 가능한 범위의 유효 범위**는 정수 및 포인터 유형을 포함하지만 **부동 소수점 유형은 포함하지 않습니다**. 유형의 Stride에 대한 정수 제약 때문입니다. 연속적인 부동 소수점 값을 반복 할 필요가 있다면 **stride (from : to :)**와 **stride (from : through : by)** 함수를 사용하여 그러한 시퀀스를 생성 할 수 있습니다.
 
