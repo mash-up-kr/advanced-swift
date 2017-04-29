@@ -168,6 +168,7 @@
           return PrefixIterator(string: string)
         }
       }
+      ```
 
 
       //사용하기
@@ -182,14 +183,14 @@
       Hell 
       Hello
       */
-
+    
       PrefixSequence(string: "Hello").map { $0.uppercased() }
       // ["H", "HE", "HEL", "HELL", "HELLO"]
       ```
-
+    
     ​
 
-  - 피보나치 수열도 해보기
+-   피보나치 수열도 해보기
 
     ```swift
     struct FibsIterator: IteratorProtocol {
@@ -232,7 +233,7 @@
 
   ## Iterator and Value Semantics
 
-  - 지금까지 살펴본 iterator는 모두 copy by value이다. 복사본을 만들면 iterator의 전체 상태가 복사되고 두 인스턴스는 서로 독립적으로 동작한다. 
+- 지금까지 살펴본 iterator는 모두 copy by value이다. 복사본을 만들면 iterator의 전체 상태가 복사되고 두 인스턴스는 서로 독립적으로 동작한다. 
   - 표준 라이브러리의 대부분의 iterator는 copy by value이지만 예외도 있다.
 
 
@@ -246,4 +247,27 @@
 
 
 
+## Unstable Sequence
 
+```swift
+let standardIn = AnySequence { 
+	return AnyIterator {
+		readLine() 
+	}
+}
+//Now you can use this sequence with the various extensions of Sequence. For example, you could write a line-numbering version of the Unix cat utility:
+
+let numberedStdIn = standardIn.enumerated()
+for (i, line) in numberedStdIn { 
+	print("\(i+1): \(line)")
+}
+```
+
+- Just like our wrapper of readLine, elements are lazily generated.
+
+- ​
+
+
+  ​			
+  ​		
+  ​	
